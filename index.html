@@ -22,12 +22,36 @@ h2{font:600 19px/1.2 Fraunces,Georgia,serif;margin:0 0 8px}
 .muted{color:var(--muted);margin:0 0 12px}
 .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px;margin:12px 0}
 .top{display:flex;justify-content:space-between;align-items:center;gap:12px}
-.tabs{display:flex;gap:6px;overflow-x:auto;margin:14px 0 0;padding-bottom:2px}
-.tab{flex:none;border:1px solid var(--line);background:transparent;color:var(--fg);border-radius:999px;padding:7px 14px;font:600 14px Manrope,sans-serif;cursor:pointer}
-.tab[aria-current="true"]{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.cab{display:flex;align-items:center;gap:14px;min-width:0}
+.btn-av{position:relative;flex:none;border:0;background:none;padding:0;cursor:pointer;border-radius:50%}
+.btn-av .av{--s:64px;box-shadow:0 0 0 3px var(--gold)}
+.btn-av .pastilla{position:absolute;right:-2px;bottom:-2px;width:22px;height:22px;border-radius:50%;background:var(--accent);color:var(--accent-ink);font:700 13px/22px Manrope,sans-serif;text-align:center}
+.btn-av:focus-visible{outline:3px solid var(--gold);outline-offset:3px}
+.btn-av[hidden]{display:none}
+.menu-fondo{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:3}
+.menu-fondo[hidden]{display:none}
+.menu{position:fixed;top:0;bottom:0;left:0;width:min(300px,84%);box-sizing:border-box;background:var(--bg);color:var(--fg);z-index:4;transform:translateX(-105%);transition:transform .25s ease;display:flex;flex-direction:column;padding:20px 16px;overflow-y:auto;box-shadow:4px 0 24px rgba(0,0,0,.3)}
+.menu.abierto{transform:none}
+.menu-cab{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:18px}
+.menu-cab .fila{display:flex;align-items:center;gap:12px;min-width:0}
+.menu nav{display:grid;gap:6px}
+.menu nav button{display:block;width:100%;text-align:left;background:transparent;border:0;border-radius:10px;color:var(--fg);font:600 16px Manrope,sans-serif;padding:12px;cursor:pointer}
+.menu nav button[aria-current="true"]{background:var(--accent);color:var(--accent-ink)}
+.menu nav button:focus-visible,.menu .btn:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+.menu .pie{margin-top:auto;padding-top:16px;border-top:1px solid var(--line)}
+.menu #btn-salir{width:100%;margin-top:0}
+.menu #btn-salir[hidden]{display:none}
+.tabs{display:none}
 label{display:grid;gap:4px;font-weight:600;font-size:14px;margin:10px 0}
 input,textarea,select{font:400 15px Manrope,sans-serif;color:var(--fg);background:var(--chip);border:1px solid var(--line);border-radius:10px;padding:10px 12px;min-width:0;width:100%;box-sizing:border-box}
 textarea{min-height:84px;resize:vertical}
+.clave{position:relative;display:block}
+.clave input{padding-right:46px}
+.ojo{position:absolute;right:4px;top:50%;transform:translateY(-50%);background:none;border:0;color:var(--muted);padding:8px;cursor:pointer;border-radius:8px;display:grid;place-items:center;margin:0;width:auto}
+.ojo:focus-visible{outline:3px solid var(--gold);outline-offset:1px}
+.ojo .barra{display:none}
+.ojo[aria-pressed="true"]{color:var(--gold)}
+.ojo[aria-pressed="true"] .barra{display:inline}
 .btn{font:700 15px Manrope,sans-serif;background:var(--accent);color:var(--accent-ink);border:0;border-radius:10px;padding:11px 16px;cursor:pointer;margin-top:8px}
 .btn.ghost{background:transparent;color:var(--fg);border:1px solid var(--line)}
 .btn.small{margin:0;padding:6px 10px;font-size:13px}
@@ -58,13 +82,17 @@ textarea{min-height:84px;resize:vertical}
 .row-end{display:flex;align-items:center;gap:8px;flex:none}
 .empty{color:var(--muted);text-align:center;padding:24px 8px}
 #toast{position:fixed;z-index:2;left:50%;bottom:calc(16px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--fg);color:var(--bg);padding:10px 14px;border-radius:10px;font-weight:600;max-width:90%}
+.aviso{position:fixed;inset:0;background:rgba(0,0,0,.55);display:grid;place-items:center;padding:20px;box-sizing:border-box;z-index:5}
+.aviso[hidden]{display:none}
+.aviso-caja{background:var(--bg);color:var(--fg);border:1px solid var(--line);border-radius:14px;padding:20px;max-width:340px;width:100%;box-sizing:border-box}
+.aviso-caja .btn{width:100%;margin-top:12px}
 .temas{display:flex;justify-content:center;flex-wrap:wrap;gap:8px;margin:12px 0 0}
 .tema-btn{width:46px;height:46px;border-radius:12px;border:2px solid var(--line);background:var(--chip);color:var(--fg);font-size:22px;line-height:1;cursor:pointer;padding:0}
 .tema-btn[aria-pressed="true"]{border-color:var(--gold);box-shadow:0 0 0 3px var(--accent)}
 .nieve{position:fixed;inset:0;pointer-events:none;overflow:hidden;z-index:0}
 .nieve span{position:absolute;top:-24px;color:var(--snow);opacity:.6;animation:cae linear infinite}
 @keyframes cae{to{transform:translateY(110vh)}}
-@media (prefers-reduced-motion:reduce){.nieve{display:none}.regalo.sacude .caja,.revelado{animation:none}}
+@media (prefers-reduced-motion:reduce){.nieve{display:none}.regalo.sacude .caja,.revelado{animation:none}.menu{transition:none}}
 /* Paletas por tema (sobre body, mandan sobre el modo claro/oscuro del sistema) */
 body[data-tema="nieve"]{--bg:#0c2a21;--fondo:radial-gradient(circle at 20% 0%,#1a5240,#0c2a21 65%);--fg:#f4efe4;--muted:#c3d4ca;--line:rgba(244,239,228,.22);--card:rgba(3,18,13,.6);--chip:rgba(244,239,228,.08);--accent:#c8102e;--accent-ink:#ffffff;--gold:#f2c14e;--snow:#f4efe4}
 body[data-tema="caramelo"]{--bg:#f7f2ea;--fondo:repeating-linear-gradient(135deg,rgba(179,24,46,.14) 0 28px,transparent 28px 56px),#f7f2ea;--fg:#3a0a12;--muted:#6e3340;--line:#d9a8a8;--card:#fffaf4;--chip:#f6e9e4;--accent:#b3182e;--accent-ink:#ffffff;--gold:#e9b949;--snow:#ffffff}
@@ -77,15 +105,36 @@ body[data-tema="santa"]{--bg:#fff4f1;--fondo:linear-gradient(180deg,#fff7f4,#f8d
 <body data-tema="nieve">
 
 <header class="top">
-  <div><h1>Amigo invisible</h1><p class="muted" id="sub">Cargando…</p></div>
+  <div class="cab">
+    <button class="btn-av" id="btn-menu" aria-label="Abrir menú" aria-controls="menu" aria-expanded="false" hidden></button>
+    <div><h1>Amigo invisible</h1><p class="muted" id="sub">Cargando…</p></div>
+  </div>
   <div class="row-end">
     <button class="btn ghost small" id="btn-instalar" onclick="pulsarInstalar()" hidden>📲 Instalar</button>
-    <button class="btn ghost small" id="btn-salir" hidden>Salir</button>
   </div>
 </header>
 <div class="ribbon" aria-hidden="true"></div>
 <div class="temas" id="temas" role="group" aria-label="Fondo"></div>
 <main id="app"><p class="empty">Cargando…</p></main>
+
+<div class="menu-fondo" id="menu-fondo" hidden></div>
+<aside class="menu" id="menu" inert aria-label="Menú de navegación">
+  <div class="menu-cab">
+    <div class="fila" id="menu-cab"></div>
+    <button class="btn ghost small" id="btn-cerrar-menu" aria-label="Cerrar menú">✕</button>
+  </div>
+  <nav id="menu-nav"></nav>
+  <div class="pie"><button class="btn ghost" id="btn-salir" hidden>Salir</button></div>
+</aside>
+
+<div class="aviso" id="aviso" hidden>
+  <div class="aviso-caja" role="dialog" aria-modal="true" aria-labelledby="aviso-titulo" aria-describedby="aviso-texto">
+    <h2 id="aviso-titulo"></h2>
+    <p class="muted" id="aviso-texto" style="margin:0"></p>
+    <button class="btn" id="aviso-ok">Aceptar</button>
+  </div>
+</div>
+
 <div id="toast" hidden role="status"></div>
 <div class="nieve" aria-hidden="true"></div>
 
@@ -110,10 +159,27 @@ const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&
 const colorDe=t=>{let h=0;for(const c of String(t))h=(h*31+c.charCodeAt(0))>>>0;return COLORES[h%COLORES.length]};
 const avatar=(p,tam)=>`<span class="av" style="${tam?`--s:${tam}px;`:""}background:${colorDe(p?.nombre||"?")}">${p?.foto_url?`<img src="${esc(p.foto_url)}" alt="">`:esc(String(p?.nombre||"?").charAt(0).toUpperCase())}</span>`;
 function toast(m){const t=$("#toast");t.textContent=m;t.hidden=false;clearTimeout(toast.t);toast.t=setTimeout(()=>t.hidden=true,3000)}
+// Aviso emergente (modal) para resultados importantes
+function aviso(titulo,texto){
+  $("#aviso-titulo").textContent=titulo;
+  $("#aviso-texto").textContent=texto;
+  $("#aviso").hidden=false;
+  $("#aviso-ok").focus();
+}
+function cerrarAviso(){$("#aviso").hidden=true}
 const errTxt=e=>e?.message||"Algo ha fallado. Inténtalo de nuevo.";
 // Las funciones devuelven el motivo del error en JSON; lo leemos para mostrarlo tal cual
 async function motivo(error){
   try{const j=await error.context.json();return j.error||errTxt(error)}catch{return errTxt(error)}
+}
+
+// ---------- Campos de contraseña con ojo ----------
+const OJO=`<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12z"/><circle cx="12" cy="12" r="3"/><line class="barra" x1="3" y1="3" x2="21" y2="21"/></svg>`;
+const campoClave=(name,label,extra="")=>`<label>${label}<span class="clave"><input name="${name}" type="password" data-clave ${extra}><button type="button" class="ojo" data-ojo aria-label="Mostrar contraseña" aria-pressed="false">${OJO}</button></span></label>`;
+// Al resetear un formulario, los campos vuelven a ocultarse
+function ocultarClaves(f){
+  f.querySelectorAll("input[data-clave]").forEach(i=>i.type="password");
+  f.querySelectorAll("[data-ojo]").forEach(b=>{b.setAttribute("aria-pressed","false");b.setAttribute("aria-label","Mostrar contraseña")});
 }
 
 // ---------- Instalación como app ----------
@@ -145,6 +211,24 @@ function pulsarInstalar(){
 }
 if("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js");
 
+// ---------- Menú lateral ----------
+function setMenu(abrir){
+  $("#menu").classList.toggle("abierto",abrir);
+  $("#menu").inert=!abrir;
+  $("#menu-fondo").hidden=!abrir;
+  $("#btn-menu").setAttribute("aria-expanded",String(abrir));
+}
+// Al abrir se enfoca la sección actual; al cerrar se devuelve el foco al avatar
+function abrirMenu(abrir){
+  setMenu(abrir);
+  if(abrir){ ($("#menu [aria-current='true']")||$("#btn-cerrar-menu")).focus(); }
+  else if(!$("#btn-menu").hidden){ $("#btn-menu").focus(); }
+}
+function menuNav(){
+  const lista=[["sorteo","Mi sorteo"],["perfil","Mi perfil"],["historial","Historial"],...(esOrg?[["organizador","Organizador"]]:[])];
+  return lista.map(([k,l])=>`<button data-screen="${k}" aria-current="${screen===k}">${l}</button>`).join("");
+}
+
 // ---------- Temas ----------
 function pintaFondo(tema){
   const t=TEMAS[tema]?tema:"nieve", T=TEMAS[t], n=document.querySelector(".nieve");
@@ -174,24 +258,20 @@ function vistaLogin(){
   return `<section class="card"><h2>Entrar</h2>
     <p class="muted">Usa el email y la contraseña que te hayamos pasado.</p>
     <form id="f-login"><label>Email<input name="email" type="email" required autocomplete="username"></label>
-    <label>Contraseña<input name="password" type="password" required autocomplete="current-password"></label>
+    ${campoClave("password","Contraseña",'required autocomplete="current-password"')}
     <button class="btn" type="submit">Entrar</button></form>
     <button class="link" id="olvide">He olvidado mi contraseña</button></section>`;
 }
 function vistaNuevaClave(){
   return `<section class="card"><h2>Elige tu contraseña</h2>
     <p class="muted">Mínimo 8 caracteres.</p>
-    <form id="f-clave"><label>Nueva contraseña<input name="password" type="password" minlength="8" required autocomplete="new-password"></label>
-    <label>Repítela<input name="repite" type="password" minlength="8" required autocomplete="new-password"></label>
+    <form id="f-clave">${campoClave("password","Nueva contraseña",'minlength="8" required autocomplete="new-password"')}
+    ${campoClave("repite","Repítela",'minlength="8" required autocomplete="new-password"')}
     <button class="btn" type="submit">Guardar</button></form>
     <button class="link" id="btn-cancelar" type="button">Cancelar y volver a entrar</button></section>`;
 }
 function vistaSinPerfil(){
   return `<section class="card"><h2>Tu cuenta no tiene perfil</h2><p class="muted">Pide al organizador que revise tu acceso.</p></section>`;
-}
-function tabs(){
-  const lista=[["sorteo","Mi sorteo"],["perfil","Mi perfil"],["historial","Historial"],...(esOrg?[["organizador","Organizador"]]:[])];
-  return `<nav class="tabs">${lista.map(([k,l])=>`<button class="tab" data-screen="${k}" aria-current="${screen===k}">${l}</button>`).join("")}</nav>`;
 }
 function yearPicker(){
   const ys=[anio-1,anio,anio+1];
@@ -221,8 +301,8 @@ function vistaPerfil(){
     <label>Lista de deseos (una idea por línea)<textarea name="deseos" maxlength="1000">${esc(yo.deseos)}</textarea></label>
     <button class="btn" type="submit">Guardar</button></form></section>
     <section class="card"><h2>Cambiar contraseña</h2>
-    <form id="f-cambiar"><label>Nueva contraseña<input name="password" type="password" minlength="8" required autocomplete="new-password"></label>
-    <label>Repítela<input name="repite" type="password" minlength="8" required autocomplete="new-password"></label>
+    <form id="f-cambiar">${campoClave("password","Nueva contraseña",'minlength="8" required autocomplete="new-password"')}
+    ${campoClave("repite","Repítela",'minlength="8" required autocomplete="new-password"')}
     <button class="btn ghost" type="submit">Cambiar contraseña</button></form></section>`;
 }
 async function vistaHistorial(){
@@ -255,7 +335,7 @@ async function vistaOrganizador(){
       <form id="f-nueva">
         <label>Nombre<input name="nombre" required maxlength="40"></label>
         <label>Email<input name="email" type="email" required autocomplete="off"></label>
-        <label>Contraseña temporal (mínimo 8)<input name="password" required minlength="8" autocomplete="off"></label>
+        ${campoClave("password","Contraseña temporal (mínimo 8)",'required minlength="8" autocomplete="off"')}
         <button class="btn" type="submit">Crear cuenta</button>
       </form>
       <p class="muted">La persona entra con ese email y esa contraseña, y puede cambiarla luego desde "Mi perfil".</p>
@@ -277,21 +357,28 @@ async function salir(){
 async function render(){
   const app=$("#app");
   const logueado=!!yo;
+  const enApp=logueado&&modo!=="nueva";
   const bs=$("#btn-salir");
   bs.hidden=!logueado;
   bs.textContent=confirmSalir?"¿Seguro?":"Salir";
+  $("#btn-menu").hidden=!enApp;
   pintaInstalar();
+  if(!enApp){ setMenu(false); $("#menu-cab").innerHTML=""; $("#menu-nav").innerHTML=""; }
   if(modo==="nueva"){ $("#sub").textContent="Cambia tu contraseña"; app.innerHTML=vistaNuevaClave(); return; }
   if(!logueado){ $("#sub").textContent="Entrar"; app.innerHTML=vistaLogin(); return; }
-  if(!yo.nombre){ app.innerHTML=vistaSinPerfil(); return; }
+  if(!yo.nombre){ $("#btn-menu").innerHTML=avatar(yo,64)+'<span class="pastilla">☰</span>'; $("#menu-cab").innerHTML=""; $("#menu-nav").innerHTML=""; app.innerHTML=vistaSinPerfil(); return; }
   $("#sub").textContent=`Hola, ${yo.nombre}`;
   if(screen==="organizador"&&!esOrg)screen="sorteo";
+  // Avatar grande arriba a la izquierda (aquí se engancharía la edición de foto en el futuro)
+  $("#btn-menu").innerHTML=avatar(yo,64)+'<span class="pastilla" aria-hidden="true">☰</span>';
+  $("#menu-cab").innerHTML=`${avatar(yo,56)}<div><strong>${esc(yo.nombre)}</strong></div>`;
+  $("#menu-nav").innerHTML=menuNav();
   let cuerpo="";
   if(screen==="sorteo") cuerpo=await vistaSorteo();
   else if(screen==="perfil") cuerpo=vistaPerfil();
   else if(screen==="historial") cuerpo=await vistaHistorial();
   else if(screen==="organizador") cuerpo=await vistaOrganizador();
-  app.innerHTML=tabs()+cuerpo;
+  app.innerHTML=cuerpo;
 }
 
 // ---------- Acciones ----------
@@ -304,8 +391,20 @@ async function cargarYo(){
 }
 
 document.addEventListener("click",async e=>{
+  if(e.target.closest("#btn-menu")){abrirMenu(true);return}
+  if(e.target.closest("#btn-cerrar-menu")||e.target.id==="menu-fondo"){abrirMenu(false);return}
+  if(e.target.closest("#aviso-ok")||e.target.id==="aviso"){cerrarAviso();return}
+  const ojo=e.target.closest("[data-ojo]");
+  if(ojo){
+    const inp=ojo.parentElement.querySelector("input");
+    const mostrar=inp.type==="password";
+    inp.type=mostrar?"text":"password";
+    ojo.setAttribute("aria-pressed",String(mostrar));
+    ojo.setAttribute("aria-label",mostrar?"Ocultar contraseña":"Mostrar contraseña");
+    return;
+  }
   const sc=e.target.closest("[data-screen]"), act=e.target.closest("[data-action]");
-  if(sc){screen=sc.dataset.screen;confirmSalir=false;confirmDraw=false;confirmReset=false;revelado=false;return render()}
+  if(sc){screen=sc.dataset.screen;confirmSalir=false;confirmDraw=false;confirmReset=false;revelado=false;abrirMenu(false);return render()}
   if(e.target.closest("#btn-salir")){return salir()}
   if(e.target.closest("#btn-cancelar")){confirmSalir=false;return salir()}
   if(e.target.id==="olvide"){
@@ -339,6 +438,13 @@ document.addEventListener("click",async e=>{
   }
 });
 
+// Escape cierra el aviso o el menú
+document.addEventListener("keydown",e=>{
+  if(e.key!=="Escape")return;
+  if(!$("#aviso").hidden){cerrarAviso();return}
+  if($("#menu").classList.contains("abierto"))abrirMenu(false);
+});
+
 document.addEventListener("change",async e=>{
   if(e.target.matches('[data-action="anyo"]')){anio=+e.target.value;confirmDraw=false;confirmReset=false;revelado=false;return render()}
   if(e.target.matches("[data-foto]")){
@@ -363,17 +469,19 @@ document.addEventListener("submit",async e=>{
     return;
   }
   if(f.id==="f-clave"){
-    if(fd.get("password")!==fd.get("repite")){toast("Las dos contraseñas no coinciden.");return}
+    if(fd.get("password")!==fd.get("repite")){aviso("Las contraseñas no coinciden","Escribe la misma contraseña en los dos campos.");return}
     const {error}=await sb.auth.updateUser({password:String(fd.get("password"))});
-    if(error){toast(errTxt(error));return}
-    modo="app"; toast("Contraseña guardada");
+    if(error){aviso("No se ha podido guardar",errTxt(error));return}
+    modo="app";
+    aviso("Contraseña cambiada con éxito","Ya puedes usar tu nueva contraseña.");
     await cargarYo(); return render();
   }
   if(f.id==="f-cambiar"){
-    if(fd.get("password")!==fd.get("repite")){toast("Las dos contraseñas no coinciden.");return}
+    if(fd.get("password")!==fd.get("repite")){aviso("Las contraseñas no coinciden","Escribe la misma contraseña en los dos campos.");return}
     const {error}=await sb.auth.updateUser({password:String(fd.get("password"))});
-    if(error){toast(errTxt(error));return}
-    toast("Contraseña cambiada"); f.reset(); return;
+    if(error){aviso("No se ha podido cambiar",errTxt(error));return}
+    aviso("Contraseña cambiada con éxito","Ya puedes usar tu nueva contraseña.");
+    f.reset(); ocultarClaves(f); return;
   }
   if(f.id==="f-perfil"){
     const {error}=await sb.from("profiles").update({
@@ -391,7 +499,7 @@ document.addEventListener("submit",async e=>{
     const {error}=await sb.functions.invoke("gestionar-personas",{body});
     if(error){toast(await motivo(error));return}
     toast(`${body.nombre} añadido/a. Pásale su email y contraseña.`);
-    f.reset(); return render();
+    f.reset(); ocultarClaves(f); return render();
   }
 });
 
