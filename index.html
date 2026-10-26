@@ -1,0 +1,347 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Amigo invisible familiar</title>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:wght@600;700&family=Manrope:wght@400;600;700&display=swap">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.1/dist/umd/supabase.js"></script>
+<style>
+:root{--bg:#0c2a21;--fg:#f4efe4;--muted:#c3d4ca;--line:rgba(244,239,228,.22);--card:rgba(3,18,13,.6);--chip:rgba(244,239,228,.08);--accent:#c8102e;--accent-ink:#ffffff;--gold:#f2c14e;--snow:#f4efe4;color-scheme:dark}
+body{margin:0 auto;max-width:560px;background:var(--fondo,var(--bg)) fixed;min-height:100%;color:var(--fg);font:400 15px/1.5 Manrope,system-ui,sans-serif;padding-block:20px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+header,main{position:relative;z-index:1}
+h1{font:700 26px/1.1 Fraunces,Georgia,serif;margin:0 0 6px;text-wrap:balance}
+h2{font:600 19px/1.2 Fraunces,Georgia,serif;margin:0 0 8px}
+.ribbon{height:4px;border-radius:2px;background:linear-gradient(90deg,var(--accent),var(--gold),var(--accent));margin:0 0 4px}
+.muted{color:var(--muted);margin:0 0 12px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px;margin:12px 0}
+.top{display:flex;justify-content:space-between;align-items:center;gap:12px}
+.tabs{display:flex;gap:6px;overflow-x:auto;margin:14px 0 0;padding-bottom:2px}
+.tab{flex:none;border:1px solid var(--line);background:transparent;color:var(--fg);border-radius:999px;padding:7px 14px;font:600 14px Manrope,sans-serif;cursor:pointer}
+.tab[aria-current="true"]{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+label{display:grid;gap:4px;font-weight:600;font-size:14px;margin:10px 0}
+input,textarea,select{font:400 15px Manrope,sans-serif;color:var(--fg);background:var(--chip);border:1px solid var(--line);border-radius:10px;padding:10px 12px;min-width:0;width:100%;box-sizing:border-box}
+textarea{min-height:84px;resize:vertical}
+.btn{font:700 15px Manrope,sans-serif;background:var(--accent);color:var(--accent-ink);border:0;border-radius:10px;padding:11px 16px;cursor:pointer;margin-top:8px}
+.btn.ghost{background:transparent;color:var(--fg);border:1px solid var(--line)}
+.btn.small{margin:0;padding:6px 10px;font-size:13px}
+.btn.danger{background:transparent;color:var(--fg);border:2px solid var(--accent)}
+.btn:disabled{opacity:.6;cursor:wait}
+.btn:focus-visible,.tab:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+.link{background:none;border:0;color:var(--gold);font:600 14px Manrope,sans-serif;cursor:pointer;padding:6px 0;text-decoration:underline}
+.av{--s:40px;width:var(--s);height:var(--s);border-radius:50%;display:inline-grid;place-items:center;overflow:hidden;color:#fff;font:700 calc(var(--s)*.42)/1 Fraunces,Georgia,serif;flex:none}
+.av img{width:100%;height:100%;object-fit:cover;display:block}
+.gift{font:700 24px Fraunces,Georgia,serif;margin:4px 0 0}
+.regalo{display:block;width:150px;height:150px;margin:18px auto 8px;position:relative;border:0;background:none;cursor:pointer;padding:0}
+.caja{position:absolute;left:20px;right:20px;top:44px;bottom:10px;background:var(--accent);border-radius:10px;box-shadow:inset 0 -8px 0 rgba(0,0,0,.18)}
+.caja::before{content:"";position:absolute;left:50%;top:-18px;bottom:-6px;width:14px;margin-left:-7px;background:var(--gold);border-radius:3px}
+.caja::after{content:"";position:absolute;top:50%;left:-6px;right:-6px;height:14px;margin-top:-7px;background:var(--gold);border-radius:3px}
+.regalo.sacude .caja{animation:sacude .5s ease-in-out}
+@keyframes sacude{0%,100%{transform:rotate(0)}20%{transform:rotate(-8deg)}40%{transform:rotate(8deg)}60%{transform:rotate(-5deg)}80%{transform:rotate(5deg)}}
+.regalo:focus-visible{outline:3px solid var(--gold);outline-offset:4px;border-radius:12px}
+.pista{text-align:center;color:var(--muted);margin:0 0 4px}
+.revelado{text-align:center;animation:aparece .6s ease-out}
+@keyframes aparece{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.revelado .av{--s:84px;margin:4px auto 0}
+.ficha{margin:14px 0 0;display:grid;gap:10px;text-align:left}
+.ficha dt{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
+.ficha dd{margin:0;white-space:pre-line;overflow-wrap:anywhere}
+.list{list-style:none;padding:0;margin:0}
+.list li{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--line);min-width:0}
+.list li > span:first-child{display:flex;align-items:center;gap:10px;min-width:0}
+.row-end{display:flex;align-items:center;gap:8px;flex:none}
+.empty{color:var(--muted);text-align:center;padding:24px 8px}
+#toast{position:fixed;z-index:2;left:50%;bottom:calc(16px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--fg);color:var(--bg);padding:10px 14px;border-radius:10px;font-weight:600;max-width:90%}
+.temas{display:flex;justify-content:center;flex-wrap:wrap;gap:8px;margin:12px 0 0}
+.tema-btn{width:46px;height:46px;border-radius:12px;border:2px solid var(--line);background:var(--card);font-size:22px;line-height:1;cursor:pointer;padding:0}
+.tema-btn[aria-pressed="true"]{border-color:var(--gold);box-shadow:0 0 0 3px var(--accent)}
+.nieve{position:fixed;inset:0;pointer-events:none;overflow:hidden;z-index:0}
+.nieve span{position:absolute;top:-24px;color:var(--snow);opacity:.6;animation:cae linear infinite}
+@keyframes cae{to{transform:translateY(110vh)}}
+@media (prefers-reduced-motion:reduce){.nieve{display:none}.regalo.sacude .caja,.revelado{animation:none}}
+/* Paletas por tema (sobre body, mandan sobre el modo claro/oscuro del sistema) */
+body[data-tema="nieve"]{--bg:#0c2a21;--fondo:radial-gradient(circle at 20% 0%,#1a5240,#0c2a21 65%);--fg:#f4efe4;--muted:#c3d4ca;--line:rgba(244,239,228,.22);--card:rgba(3,18,13,.6);--chip:rgba(244,239,228,.08);--accent:#c8102e;--accent-ink:#ffffff;--gold:#f2c14e;--snow:#f4efe4}
+body[data-tema="caramelo"]{--bg:#f7f2ea;--fondo:repeating-linear-gradient(135deg,rgba(179,24,46,.14) 0 28px,transparent 28px 56px),#f7f2ea;--fg:#3a0a12;--muted:#6e3340;--line:#d9a8a8;--card:#fffaf4;--chip:#f6e9e4;--accent:#b3182e;--accent-ink:#ffffff;--gold:#e9b949;--snow:#ffffff}
+body[data-tema="galletas"]{--bg:#4a2c18;--fondo:radial-gradient(circle at 50% 0%,#7a4d2c,#3f2414 75%);--fg:#fbeccf;--muted:#e6cfa6;--line:rgba(251,236,207,.25);--card:rgba(28,14,5,.6);--chip:rgba(251,236,207,.08);--accent:#237046;--accent-ink:#ffffff;--gold:#f2c14e;--snow:#fbeccf}
+body[data-tema="regalos"]{--bg:#7a1220;--fondo:linear-gradient(160deg,#a51b2a,#6a0d18);--fg:#fff3e0;--muted:#f5d6c8;--line:rgba(255,243,224,.28);--card:rgba(50,3,10,.6);--chip:rgba(255,243,224,.08);--accent:#f2c14e;--accent-ink:#3a0a10;--gold:#3f9a63;--snow:#fff3e0}
+body[data-tema="pinos"]{--bg:#0a2a1d;--fondo:linear-gradient(180deg,#14533a,#0a2a1d);--fg:#f6f1e3;--muted:#c4dccb;--line:rgba(246,241,227,.22);--card:rgba(2,16,10,.6);--chip:rgba(246,241,227,.08);--accent:#c8102e;--accent-ink:#ffffff;--gold:#f2c14e;--snow:#f6f1e3}
+body[data-tema="santa"]{--bg:#fff4f1;--fondo:linear-gradient(180deg,#fff7f4,#f8dcd5);--fg:#2b1313;--muted:#6a4646;--line:#e7b9b9;--card:#ffffff;--chip:#fbeaea;--accent:#1f7a4d;--accent-ink:#ffffff;--gold:#c8102e;--snow:#c8102e}
+</style>
+</head>
+<body data-tema="nieve">
+
+<header class="top">
+  <div><h1>Amigo invisible</h1><p class="muted" id="sub">Cargando…</p></div>
+  <div class="row-end"><button class="btn ghost small" id="btn-clave" hidden>Contraseña</button><button class="btn ghost small" id="btn-salir" hidden>Salir</button></div>
+</header>
+<div class="ribbon" aria-hidden="true"></div>
+<div class="temas" id="temas" role="group" aria-label="Fondo"></div>
+<main id="app"><p class="empty">Cargando…</p></main>
+<div id="toast" hidden role="status"></div>
+<div class="nieve" aria-hidden="true"></div>
+
+<script>
+const SB_URL="https://gfhzdadmovzybraqrobo.supabase.co";
+const SB_KEY="sb_publishable_4hNS7q15MGEUBPXt9Gpkog_-2iADMBH";
+const sb=supabase.createClient(SB_URL,SB_KEY);
+
+const TEMAS={
+  nieve:{nombre:"Nieve",items:["❄"],tam:[8,18],icono:"❄"},
+  caramelo:{nombre:"Bastones de caramelo",items:["🍭"],tam:[16,26],icono:"🍭"},
+  galletas:{nombre:"Galletas de jengibre",items:["🍪"],tam:[16,26],icono:"🍪"},
+  regalos:{nombre:"Regalos",items:["🎁"],tam:[16,26],icono:"🎁"},
+  pinos:{nombre:"Pinos",items:["🌲"],tam:[16,26],icono:"🌲"},
+  santa:{nombre:"Papá Noel",items:["🎅"],tam:[18,28],icono:"🎅"}
+};
+const COLORES=["#c8102e","#1f7a4d","#8a6310","#2d62a8","#8e3b8f"];
+
+let yo=null, esOrg=false, screen="sorteo", anio=new Date().getFullYear(), modo="login", revelado=false, sacudiendo=false, confirmDraw=false, confirmReset=false;
+const $=s=>document.querySelector(s);
+const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const colorDe=t=>{let h=0;for(const c of String(t))h=(h*31+c.charCodeAt(0))>>>0;return COLORES[h%COLORES.length]};
+const avatar=(p,tam)=>`<span class="av" style="${tam?`--s:${tam}px;`:""}background:${colorDe(p?.nombre||"?")}">${p?.foto_url?`<img src="${esc(p.foto_url)}" alt="">`:esc(String(p?.nombre||"?").charAt(0).toUpperCase())}</span>`;
+function toast(m){const t=$("#toast");t.textContent=m;t.hidden=false;clearTimeout(toast.t);toast.t=setTimeout(()=>t.hidden=true,3000)}
+const errTxt=e=>e?.message||"Algo ha fallado. Inténtalo de nuevo.";
+// Las funciones devuelven el motivo del error en JSON; lo leemos para mostrarlo tal cual
+async function motivo(error){
+  try{const j=await error.context.json();return j.error||errTxt(error)}catch{return errTxt(error)}
+}
+
+// ---------- Temas ----------
+function pintaFondo(tema){
+  const t=TEMAS[tema]?tema:"nieve", T=TEMAS[t], n=document.querySelector(".nieve");
+  document.body.dataset.tema=t;
+  document.querySelectorAll("[data-tema-pick]").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.temaPick===t)));
+  n.replaceChildren();
+  for(let i=0;i<16;i++){
+    const s=document.createElement("span");
+    s.style.left=(Math.random()*100)+"%";
+    s.style.animationDuration=(9+Math.random()*10)+"s";
+    s.style.animationDelay=(-Math.random()*15)+"s";
+    s.style.fontSize=(T.tam[0]+Math.random()*(T.tam[1]-T.tam[0]))+"px";
+    s.textContent=T.items[i%T.items.length];
+    n.appendChild(s);
+  }
+  try{localStorage.setItem("amigo-tema",t)}catch{}
+}
+(()=>{
+  $("#temas").innerHTML=Object.entries(TEMAS).map(([k,t])=>`<button class="tema-btn" data-tema-pick="${k}" aria-label="${t.nombre}" title="${t.nombre}" aria-pressed="false">${t.icono}</button>`).join("");
+  let t="nieve"; try{t=localStorage.getItem("amigo-tema")||"nieve"}catch{}
+  pintaFondo(t);
+})();
+document.addEventListener("click",e=>{const b=e.target.closest("[data-tema-pick]"); if(b)pintaFondo(b.dataset.temaPick)});
+
+// ---------- Vistas ----------
+function vistaLogin(){
+  return `<section class="card"><h2>Entrar</h2>
+    <p class="muted">Usa el email y la contraseña que te hayamos pasado.</p>
+    <form id="f-login"><label>Email<input name="email" type="email" required autocomplete="username"></label>
+    <label>Contraseña<input name="password" type="password" required autocomplete="current-password"></label>
+    <button class="btn" type="submit">Entrar</button></form>
+    <button class="link" id="olvide">He olvidado mi contraseña</button></section>`;
+}
+function vistaNuevaClave(){
+  return `<section class="card"><h2>Elige tu contraseña</h2>
+    <p class="muted">Mínimo 8 caracteres.</p>
+    <form id="f-clave"><label>Nueva contraseña<input name="password" type="password" minlength="8" required autocomplete="new-password"></label>
+    <label>Repítela<input name="repite" type="password" minlength="8" required autocomplete="new-password"></label>
+    <button class="btn" type="submit">Guardar</button></form></section>`;
+}
+function vistaSinPerfil(){
+  return `<section class="card"><h2>Tu cuenta no tiene perfil</h2><p class="muted">Pide al organizador que revise tu acceso.</p></section>`;
+}
+function tabs(){
+  const lista=[["sorteo","Mi sorteo"],["perfil","Mi perfil"],["historial","Historial"],...(esOrg?[["organizador","Organizador"]]:[])];
+  return `<nav class="tabs">${lista.map(([k,l])=>`<button class="tab" data-screen="${k}" aria-current="${screen===k}">${l}</button>`).join("")}</nav>`;
+}
+function yearPicker(){
+  const ys=[anio-1,anio,anio+1];
+  return `<label>Año<select data-action="anyo">${ys.map(y=>`<option value="${y}" ${y===anio?"selected":""}>${y}</option>`).join("")}</select></label>`;
+}
+function ficha(p){return `<dl class="ficha"><dt>Gustos</dt><dd>${esc(p.gustos)||"—"}</dd><dt>Tallas</dt><dd>${esc(p.tallas)||"—"}</dd><dt>Deseos</dt><dd>${esc(p.deseos)||"—"}</dd></dl>`}
+
+async function vistaSorteo(){
+  const {data:hecho}=await sb.rpc("sorteo_hecho",{p_anio:anio});
+  let card;
+  if(!hecho) card=`<h2>Sorteo ${anio}</h2><p class="muted">Todavía no se ha hecho. Cuando el organizador lo lance, aquí verás a quién te toca regalar.</p>`;
+  else{
+    const {data,error}=await sb.rpc("mi_regalo",{p_anio:anio});
+    const to=!error&&data?.[0];
+    if(!to) card=`<p class="muted">No apareces en el sorteo de ${anio}.</p>`;
+    else if(!revelado) card=`<p class="pista">Toca el regalo para descubrir a quién te toca</p><button class="regalo ${sacudiendo?"sacude":""}" data-action="abrir" aria-label="Abrir regalo"><span class="caja"></span></button>`;
+    else card=`<div class="revelado"><p class="muted">Solo tú ves esto</p>${avatar(to,84)}<h2 style="margin-top:10px">Te toca regalar a</h2><p class="gift">${esc(to.nombre)}</p>${ficha(to)}</div>`;
+  }
+  const dias=(()=>{const h=new Date();let n=new Date(h.getFullYear(),11,25);if(n<h)n=new Date(h.getFullYear()+1,11,25);return Math.ceil((n-h)/864e5)})();
+  return `${yearPicker()}<p class="muted">Faltan ${dias} días para Navidad</p><section class="card">${card}</section>`;
+}
+function vistaPerfil(){
+  return `<section class="card"><h2>Mi perfil</h2><form id="f-perfil">
+    <label>Nombre<input name="nombre" maxlength="40" required value="${esc(yo.nombre)}"></label>
+    <label>Gustos<textarea name="gustos" maxlength="500">${esc(yo.gustos)}</textarea></label>
+    <label>Tallas<input name="tallas" maxlength="120" value="${esc(yo.tallas)}"></label>
+    <label>Lista de deseos (una idea por línea)<textarea name="deseos" maxlength="1000">${esc(yo.deseos)}</textarea></label>
+    <button class="btn" type="submit">Guardar</button></form></section>`;
+}
+async function vistaHistorial(){
+  const {data,error}=await sb.rpc("mi_historial");
+  if(error) return `<p class="empty">No se pudo cargar el historial.</p>`;
+  const rows=(data||[]).map(r=>`<li><span>${esc(r.anio)}</span><span>${avatar({nombre:r.nombre,foto_url:r.foto_url},32)}<strong>${esc(r.nombre||"Alguien que ya no está")}</strong></span></li>`).join("");
+  return `<section class="card"><h2>A quién has regalado</h2>${rows?`<ul class="list">${rows}</ul>`:'<p class="muted">Todavía no hay sorteos guardados contigo.</p>'}</section>`;
+}
+async function vistaOrganizador(){
+  const {data:hecho}=await sb.rpc("sorteo_hecho",{p_anio:anio});
+  const {data:personas}=await sb.from("profiles").select("id,user_id,nombre,foto_url").order("nombre");
+  const lista=(personas||[]).map(p=>`<li><span>${avatar(p,32)}<span>${esc(p.nombre)}</span></span>
+    <span class="row-end">
+      <label class="btn ghost small" style="margin:0;cursor:pointer">Foto<input type="file" accept="image/*" data-foto="${esc(p.id)}" hidden></label>
+      ${p.id===yo.id?'<span class="muted">tú</span>':`<button class="btn danger small" data-action="borrar" data-id="${esc(p.id)}">${confirmDelete===p.id?"Confirmar":"Quitar"}</button>`}
+    </span></li>`).join("");
+  let pares="";
+  if(hecho){
+    const {data}=await sb.rpc("ver_sorteo",{p_anio:anio});
+    pares=`<section class="card"><h2>Pares del ${anio}</h2><ul class="list">${(data||[]).map(r=>`<li><span>${esc(r.regala)}</span><span class="muted">→ ${esc(r.recibe)}</span></li>`).join("")}</ul></section>`;
+  }
+  const botonSorteo=hecho
+    ?`<button class="btn danger" data-action="reset">${confirmReset?"Pulsa otra vez para borrar el sorteo":"Borrar este sorteo y rehacerlo"}</button>`
+    :`<button class="btn" data-action="sortear">${confirmDraw?"Pulsa otra vez para confirmar":"Hacer el sorteo"}</button>`;
+  return `${yearPicker()}
+    <section class="card"><h2>Sorteo ${anio}</h2><p class="muted">${(personas||[]).length} personas apuntadas. ${hecho?"Ya está hecho.":"Lánzalo cuando todos estén apuntados."}</p>${botonSorteo}</section>
+    ${pares}
+    <section class="card"><h2>Personas</h2><ul class="list">${lista}</ul></section>
+    <section class="card"><h2>Añadir a alguien</h2>
+      <form id="f-nueva">
+        <label>Nombre<input name="nombre" required maxlength="40"></label>
+        <label>Email<input name="email" type="email" required autocomplete="off"></label>
+        <label>Contraseña temporal (mínimo 8)<input name="password" required minlength="8" autocomplete="off"></label>
+        <button class="btn" type="submit">Crear cuenta</button>
+      </form>
+      <p class="muted">La persona entra con ese email y esa contraseña, y puede cambiarla luego desde "Contraseña".</p>
+    </section>`;
+}
+let confirmDelete=null;
+
+// ---------- Render ----------
+async function render(){
+  const app=$("#app");
+  const logueado=!!yo;
+  $("#btn-salir").hidden=!logueado; $("#btn-clave").hidden=!logueado;
+  if(modo==="nueva"){ $("#sub").textContent="Cambia tu contraseña"; app.innerHTML=vistaNuevaClave(); return; }
+  if(!logueado){ $("#sub").textContent="Entrar"; app.innerHTML=vistaLogin(); return; }
+  if(!yo.nombre){ app.innerHTML=vistaSinPerfil(); return; }
+  $("#sub").textContent=`Hola, ${yo.nombre}`;
+  if(screen==="organizador"&&!esOrg)screen="sorteo";
+  let cuerpo="";
+  if(screen==="sorteo") cuerpo=await vistaSorteo();
+  else if(screen==="perfil") cuerpo=vistaPerfil();
+  else if(screen==="historial") cuerpo=await vistaHistorial();
+  else if(screen==="organizador") cuerpo=await vistaOrganizador();
+  app.innerHTML=tabs()+cuerpo;
+}
+
+// ---------- Acciones ----------
+async function cargarYo(){
+  const {data:{session}}=await sb.auth.getSession();
+  if(!session){ yo=null; esOrg=false; return; }
+  const {data}=await sb.from("profiles").select("*").eq("user_id",session.user.id).maybeSingle();
+  yo=data||{nombre:"",id:session.user.id};
+  esOrg=!!data?.es_admin;
+}
+
+document.addEventListener("click",async e=>{
+  const sc=e.target.closest("[data-screen]"), act=e.target.closest("[data-action]");
+  if(sc){screen=sc.dataset.screen;confirmDraw=false;confirmReset=false;revelado=false;return render()}
+  if(e.target.id==="btn-salir"){await sb.auth.signOut();return}
+  if(e.target.id==="btn-clave"){modo="nueva";return render()}
+  if(e.target.id==="olvide"){
+    const email=prompt("Escribe tu email para recibir el enlace de recuperación:");
+    if(!email)return;
+    const {error}=await sb.auth.resetPasswordForEmail(email,{redirectTo:location.href.split("#")[0]});
+    toast(error?errTxt(error):"Si el email existe, te llegará un enlace para cambiar la contraseña.");
+    return;
+  }
+  if(!act)return;
+  const a=act.dataset.action;
+  if(a==="abrir"&&!sacudiendo&&!revelado){sacudiendo=true;await render();setTimeout(async()=>{sacudiendo=false;revelado=true;await render()},520)}
+  if(a==="sortear"){
+    if(!confirmDraw){confirmDraw=true;return render()}
+    confirmDraw=false;
+    const {error}=await sb.rpc("sortear",{p_anio:anio});
+    toast(error?errTxt(error):"Sorteo hecho");return render();
+  }
+  if(a==="reset"){
+    if(!confirmReset){confirmReset=true;return render()}
+    confirmReset=false;
+    const {error}=await sb.rpc("borrar_sorteo",{p_anio:anio});
+    toast(error?errTxt(error):"Sorteo borrado. Ya puedes volver a hacerlo.");return render();
+  }
+  if(a==="borrar"){
+    const id=act.dataset.id;
+    if(confirmDelete!==id){confirmDelete=id;return render()}
+    confirmDelete=null;
+    const {error}=await sb.functions.invoke("gestionar-personas",{body:{accion:"borrar",id}});
+    toast(error?await motivo(error):"Persona quitada");return render();
+  }
+});
+
+document.addEventListener("change",async e=>{
+  if(e.target.matches('[data-action="anyo"]')){anio=+e.target.value;confirmDraw=false;confirmReset=false;revelado=false;return render()}
+  if(e.target.matches("[data-foto]")){
+    const file=e.target.files?.[0]; if(!file)return;
+    const id=e.target.dataset.foto;
+    const ruta=`${id}-${Date.now()}`;
+    const {error:errUp}=await sb.storage.from("fotos").upload(ruta,file,{upsert:true,contentType:file.type});
+    if(errUp){toast(errTxt(errUp));return}
+    const url=sb.storage.from("fotos").getPublicUrl(ruta).data.publicUrl;
+    const {error}=await sb.from("profiles").update({foto_url:url}).eq("id",id);
+    toast(error?errTxt(error):"Foto guardada");
+    return render();
+  }
+});
+
+document.addEventListener("submit",async e=>{
+  e.preventDefault();
+  const f=e.target, fd=new FormData(f);
+  if(f.id==="f-login"){
+    const {error}=await sb.auth.signInWithPassword({email:String(fd.get("email")).trim(),password:String(fd.get("password"))});
+    if(error) toast("Email o contraseña incorrectos.");
+    return;
+  }
+  if(f.id==="f-clave"){
+    if(fd.get("password")!==fd.get("repite")){toast("Las dos contraseñas no coinciden.");return}
+    const {error}=await sb.auth.updateUser({password:String(fd.get("password"))});
+    if(error){toast(errTxt(error));return}
+    modo="app"; toast("Contraseña guardada");
+    await cargarYo(); return render();
+  }
+  if(f.id==="f-perfil"){
+    const {error}=await sb.from("profiles").update({
+      nombre:String(fd.get("nombre")).trim()||yo.nombre,
+      gustos:String(fd.get("gustos")).trim(),
+      tallas:String(fd.get("tallas")).trim(),
+      deseos:String(fd.get("deseos")).trim()
+    }).eq("id",yo.id);
+    toast(error?errTxt(error):"Guardado");
+    if(!error){await cargarYo()}
+    return render();
+  }
+  if(f.id==="f-nueva"){
+    const body={accion:"crear",nombre:String(fd.get("nombre")).trim(),email:String(fd.get("email")).trim(),password:String(fd.get("password"))};
+    const {error}=await sb.functions.invoke("gestionar-personas",{body});
+    if(error){toast(await motivo(error));return}
+    toast(`${body.nombre} añadido/a. Pásale su email y contraseña.`);
+    f.reset(); return render();
+  }
+});
+
+// Volver al estado correcto al entrar, al salir o al cambiar de sesión (incluida la recuperación de contraseña)
+sb.auth.onAuthStateChange(async (evento)=>{
+  if(evento==="PASSWORD_RECOVERY"){modo="nueva"}
+  else if(evento==="SIGNED_OUT"){modo="login"}
+  else if(evento==="SIGNED_IN" && modo!=="nueva"){modo="app"}
+  await cargarYo();
+  render();
+});
+</script>
+</body>
+</html>
