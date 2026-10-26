@@ -73,7 +73,7 @@ body[data-tema="santa"]{--bg:#fff4f1;--fondo:linear-gradient(180deg,#fff7f4,#f8d
 
 <header class="top">
   <div><h1>Amigo invisible</h1><p class="muted" id="sub">Cargando…</p></div>
-  <div class="row-end"><button class="btn ghost small" id="btn-clave" hidden>Contraseña</button><button class="btn ghost small" id="btn-salir" hidden>Salir</button></div>
+  <div class="row-end"><button class="btn ghost small" id="btn-salir" hidden>Salir</button></div>
 </header>
 <div class="ribbon" aria-hidden="true"></div>
 <div class="temas" id="temas" role="group" aria-label="Fondo"></div>
@@ -146,7 +146,8 @@ function vistaNuevaClave(){
     <p class="muted">Mínimo 8 caracteres.</p>
     <form id="f-clave"><label>Nueva contraseña<input name="password" type="password" minlength="8" required autocomplete="new-password"></label>
     <label>Repítela<input name="repite" type="password" minlength="8" required autocomplete="new-password"></label>
-    <button class="btn" type="submit">Guardar</button></form></section>`;
+    <button class="btn" type="submit">Guardar</button></form>
+    <button class="link" id="btn-cancelar" type="button">Cancelar y volver a entrar</button></section>`;
 }
 function vistaSinPerfil(){
   return `<section class="card"><h2>Tu cuenta no tiene perfil</h2><p class="muted">Pide al organizador que revise tu acceso.</p></section>`;
@@ -181,7 +182,11 @@ function vistaPerfil(){
     <label>Gustos<textarea name="gustos" maxlength="500">${esc(yo.gustos)}</textarea></label>
     <label>Tallas<input name="tallas" maxlength="120" value="${esc(yo.tallas)}"></label>
     <label>Lista de deseos (una idea por línea)<textarea name="deseos" maxlength="1000">${esc(yo.deseos)}</textarea></label>
-    <button class="btn" type="submit">Guardar</button></form></section>`;
+    <button class="btn" type="submit">Guardar</button></form></section>
+    <section class="card"><h2>Cambiar contraseña</h2>
+    <form id="f-cambiar"><label>Nueva contraseña<input name="password" type="password" minlength="8" required autocomplete="new-password"></label>
+    <label>Repítela<input name="repite" type="password" minlength="8" required autocomplete="new-password"></label>
+    <button class="btn ghost" type="submit">Cambiar contraseña</button></form></section>`;
 }
 async function vistaHistorial(){
   const {data,error}=await sb.rpc("mi_historial");
@@ -221,11 +226,20 @@ async function vistaOrganizador(){
 }
 let confirmDelete=null;
 
+// Cierra la sesión y vuelve siempre a la pantalla de entrada (no depende del evento de Supabase)
+async function salir(){
+  const {error}=await sb.auth.signOut();
+  if(error) toast(errTxt(error));
+  yo=null; esOrg=false; modo="login"; screen="sorteo";
+  revelado=false; confirmDraw=false; confirmReset=false; confirmDelete=null;
+  return render();
+}
+
 // ---------- Render ----------
 async function render(){
   const app=$("#app");
   const logueado=!!yo;
-  $("#btn-salir").hidden=!logueado; $("#btn-clave").hidden=!logueado;
+  $("#btn-salir").hidden=!logueado;
   if(modo==="nueva"){ $("#sub").textContent="Cambia tu contraseña"; app.innerHTML=vistaNuevaClave(); return; }
   if(!logueado){ $("#sub").textContent="Entrar"; app.innerHTML=vistaLogin(); return; }
   if(!yo.nombre){ app.innerHTML=vistaSinPerfil(); return; }
@@ -251,8 +265,7 @@ async function cargarYo(){
 document.addEventListener("click",async e=>{
   const sc=e.target.closest("[data-screen]"), act=e.target.closest("[data-action]");
   if(sc){screen=sc.dataset.screen;confirmDraw=false;confirmReset=false;revelado=false;return render()}
-  if(e.target.id==="btn-salir"){await sb.auth.signOut();return}
-  if(e.target.id==="btn-clave"){modo="nueva";return render()}
+  if(e.target.closest("#btn-salir")||e.target.closest("#btn-cancelar")){return salir()}
   if(e.target.id==="olvide"){
     const email=prompt("Escribe tu email para recibir el enlace de recuperación:");
     if(!email)return;
@@ -314,6 +327,12 @@ document.addEventListener("submit",async e=>{
     modo="app"; toast("Contraseña guardada");
     await cargarYo(); return render();
   }
+  if(f.id==="f-cambiar"){
+    if(fd.get("password")!==fd.get("repite")){toast("Las dos contraseñas no coinciden.");return}
+    const {error}=await sb.auth.updateUser({password:String(fd.get("password"))});
+    if(error){toast(errTxt(error));return}
+    toast("Contraseña cambiada"); f.reset(); return;
+  }
   if(f.id==="f-perfil"){
     const {error}=await sb.from("profiles").update({
       nombre:String(fd.get("nombre")).trim()||yo.nombre,
@@ -335,12 +354,15 @@ document.addEventListener("submit",async e=>{
 });
 
 // Volver al estado correcto al entrar, al salir o al cambiar de sesión (incluida la recuperación de contraseña)
-sb.auth.onAuthStateChange(async (evento)=>{
-  if(evento==="PASSWORD_RECOVERY"){modo="nueva"}
-  else if(evento==="SIGNED_OUT"){modo="login"}
-  else if(evento==="SIGNED_IN" && modo!=="nueva"){modo="app"}
-  await cargarYo();
-  render();
+// Se difiere con setTimeout: llamar a Supabase dentro del propio callback puede bloquear la sesión
+sb.auth.onAuthStateChange((evento)=>{
+  setTimeout(async()=>{
+    if(evento==="PASSWORD_RECOVERY"){modo="nueva"}
+    else if(evento==="SIGNED_OUT"){modo="login"}
+    else if(evento==="SIGNED_IN" && modo!=="nueva"){modo="app"}
+    await cargarYo();
+    render();
+  },0);
 });
 </script>
 </body>
