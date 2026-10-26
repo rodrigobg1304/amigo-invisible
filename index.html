@@ -104,7 +104,7 @@ const TEMAS={
 };
 const COLORES=["#c8102e","#1f7a4d","#8a6310","#2d62a8","#8e3b8f"];
 
-let yo=null, esOrg=false, screen="sorteo", anio=new Date().getFullYear(), modo="login", revelado=false, sacudiendo=false, confirmDraw=false, confirmReset=false;
+let yo=null, esOrg=false, screen="sorteo", anio=new Date().getFullYear(), modo="login", revelado=false, sacudiendo=false, confirmDraw=false, confirmReset=false, confirmDelete=null, confirmSalir=false;
 const $=s=>document.querySelector(s);
 const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const colorDe=t=>{let h=0;for(const c of String(t))h=(h*31+c.charCodeAt(0))>>>0;return COLORES[h%COLORES.length]};
@@ -261,12 +261,10 @@ async function vistaOrganizador(){
       <p class="muted">La persona entra con ese email y esa contraseña, y puede cambiarla luego desde "Mi perfil".</p>
     </section>`;
 }
-let confirmDelete=null;
 
-// Cierra la sesión y vuelve siempre a la pantalla de entrada (no depende del evento de Supabase)
-let confirmSalir=false;
+// Cierra la sesión (primer toque pide confirmación, el segundo la cierra)
 async function salir(){
-  if(!confirmSalir){confirmSalir=true;render();return}
+  if(!confirmSalir){confirmSalir=true;return render()}
   confirmSalir=false;
   const {error}=await sb.auth.signOut();
   if(error) toast(errTxt(error));
@@ -279,7 +277,9 @@ async function salir(){
 async function render(){
   const app=$("#app");
   const logueado=!!yo;
-  $("#btn-salir").hidden=!logueado;
+  const bs=$("#btn-salir");
+  bs.hidden=!logueado;
+  bs.textContent=confirmSalir?"¿Seguro?":"Salir";
   pintaInstalar();
   if(modo==="nueva"){ $("#sub").textContent="Cambia tu contraseña"; app.innerHTML=vistaNuevaClave(); return; }
   if(!logueado){ $("#sub").textContent="Entrar"; app.innerHTML=vistaLogin(); return; }
@@ -305,8 +305,9 @@ async function cargarYo(){
 
 document.addEventListener("click",async e=>{
   const sc=e.target.closest("[data-screen]"), act=e.target.closest("[data-action]");
-  if(sc){screen=sc.dataset.screen;confirmDraw=false;confirmReset=false;revelado=false;return render()}
-  if(e.target.closest("#btn-salir")||e.target.closest("#btn-cancelar")){return salir()}
+  if(sc){screen=sc.dataset.screen;confirmSalir=false;confirmDraw=false;confirmReset=false;revelado=false;return render()}
+  if(e.target.closest("#btn-salir")){return salir()}
+  if(e.target.closest("#btn-cancelar")){confirmSalir=false;return salir()}
   if(e.target.id==="olvide"){
     const email=prompt("Escribe tu email para recibir el enlace de recuperación:");
     if(!email)return;
