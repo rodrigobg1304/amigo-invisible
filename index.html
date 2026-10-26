@@ -81,6 +81,11 @@ textarea{min-height:84px;resize:vertical}
 .list li > span:first-child{display:flex;align-items:center;gap:10px;min-width:0}
 .row-end{display:flex;align-items:center;gap:8px;flex:none}
 .empty{color:var(--muted);text-align:center;padding:24px 8px}
+.part-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(104px,1fr));gap:14px}
+.part{text-align:center;min-width:0}
+.part .av{--s:76px;margin:0 auto;box-shadow:0 0 0 3px var(--gold)}
+.part strong{display:block;margin-top:8px;overflow-wrap:anywhere}
+.part .muted{margin:2px 0 0;font-size:12px}
 #toast{position:fixed;z-index:2;left:50%;bottom:calc(16px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--fg);color:var(--bg);padding:10px 14px;border-radius:10px;font-weight:600;max-width:90%}
 .aviso{position:fixed;inset:0;background:rgba(0,0,0,.55);display:grid;place-items:center;padding:20px;box-sizing:border-box;z-index:5}
 .aviso[hidden]{display:none}
@@ -99,7 +104,7 @@ body[data-tema="caramelo"]{--bg:#f7f2ea;--fondo:repeating-linear-gradient(135deg
 body[data-tema="galletas"]{--bg:#4a2c18;--fondo:radial-gradient(circle at 50% 0%,#7a4d2c,#3f2414 75%);--fg:#fbeccf;--muted:#e6cfa6;--line:rgba(251,236,207,.25);--card:rgba(28,14,5,.6);--chip:rgba(251,236,207,.08);--accent:#237046;--accent-ink:#ffffff;--gold:#f2c14e;--snow:#fbeccf}
 body[data-tema="regalos"]{--bg:#7a1220;--fondo:linear-gradient(160deg,#a51b2a,#6a0d18);--fg:#fff3e0;--muted:#f5d6c8;--line:rgba(255,243,224,.28);--card:rgba(50,3,10,.6);--chip:rgba(255,243,224,.08);--accent:#f2c14e;--accent-ink:#3a0a10;--gold:#3f9a63;--snow:#fff3e0}
 body[data-tema="pinos"]{--bg:#0a2a1d;--fondo:linear-gradient(180deg,#14533a,#0a2a1d);--fg:#f6f1e3;--muted:#c4dccb;--line:rgba(246,241,227,.22);--card:rgba(2,16,10,.6);--chip:rgba(246,241,227,.08);--accent:#c8102e;--accent-ink:#ffffff;--gold:#f2c14e;--snow:#f6f1e3}
-body[data-tema="santa"]{--bg:#ffffff;--fondo:linear-gradient(180deg,#ffffff 0%,#f4f4f4 60%,#e9e9e9 100%);--fg:#141414;--muted:#4a4a4a;--line:#1a1a1a;--card:#ffffff;--chip:#f3f3f3;--accent:#c8102e;--accent-ink:#ffffff;--gold:#141414;--snow:#c8102e}
+body[data-tema="santa"]{--bg:#a30d1e;--fondo:linear-gradient(170deg,#e0132b 0%,#b00d20 55%,#7d0816 100%);--fg:#ffffff;--muted:#ffd6d6;--line:rgba(255,255,255,.45);--card:rgba(40,0,6,.55);--chip:rgba(255,255,255,.12);--accent:#111111;--accent-ink:#ffffff;--gold:#ffffff;--snow:#ffffff}
 </style>
 </head>
 <body data-tema="nieve">
@@ -225,7 +230,7 @@ function abrirMenu(abrir){
   else if(!$("#btn-menu").hidden){ $("#btn-menu").focus(); }
 }
 function menuNav(){
-  const lista=[["sorteo","Mi sorteo"],["perfil","Mi perfil"],["historial","Historial"],...(esOrg?[["organizador","Organizador"]]:[])];
+  const lista=[["sorteo","Mi sorteo"],["participantes","Participantes"],["perfil","Mi perfil"],["historial","Historial"],...(esOrg?[["organizador","Organizador"]]:[])];
   return lista.map(([k,l])=>`<button data-screen="${k}" aria-current="${screen===k}">${l}</button>`).join("");
 }
 
@@ -292,6 +297,12 @@ async function vistaSorteo(){
   }
   const dias=(()=>{const h=new Date();let n=new Date(h.getFullYear(),11,25);if(n<h)n=new Date(h.getFullYear()+1,11,25);return Math.ceil((n-h)/864e5)})();
   return `${yearPicker()}<p class="muted">Faltan ${dias} días para Navidad</p><section class="card">${card}</section>`;
+}
+async function vistaParticipantes(){
+  const {data,error}=await sb.rpc("listar_participantes");
+  if(error) return `<p class="empty">No se pudo cargar la lista de participantes.</p>`;
+  const items=(data||[]).map(p=>`<div class="part">${avatar(p,76)}<strong>${esc(p.nombre)}</strong>${p.id===yo.id?'<p class="muted">tú</p>':""}</div>`).join("");
+  return `<section class="card"><h2>Participantes</h2><p class="muted">${(data||[]).length} personas en el amigo invisible.</p>${items?`<div class="part-grid">${items}</div>`:'<p class="muted">Todavía no hay participantes.</p>'}</section>`;
 }
 function vistaPerfil(){
   return `<section class="card"><h2>Mi perfil</h2><form id="f-perfil">
@@ -375,6 +386,7 @@ async function render(){
   $("#menu-nav").innerHTML=menuNav();
   let cuerpo="";
   if(screen==="sorteo") cuerpo=await vistaSorteo();
+  else if(screen==="participantes") cuerpo=await vistaParticipantes();
   else if(screen==="perfil") cuerpo=vistaPerfil();
   else if(screen==="historial") cuerpo=await vistaHistorial();
   else if(screen==="organizador") cuerpo=await vistaOrganizador();
