@@ -4,6 +4,11 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Amigo invisible familiar</title>
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-180.png">
+<meta name="theme-color" content="#165b33">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Amigo Invisible">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:wght@600;700&family=Manrope:wght@400;600;700&display=swap">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.1/dist/umd/supabase.js"></script>
@@ -73,7 +78,10 @@ body[data-tema="santa"]{--bg:#fff4f1;--fondo:linear-gradient(180deg,#fff7f4,#f8d
 
 <header class="top">
   <div><h1>Amigo invisible</h1><p class="muted" id="sub">Cargando…</p></div>
-  <div class="row-end"><button class="btn ghost small" id="btn-salir" hidden>Salir</button></div>
+  <div class="row-end">
+    <button class="btn ghost small" id="btn-instalar" onclick="pulsarInstalar()" hidden>📲 Instalar</button>
+    <button class="btn ghost small" id="btn-salir" hidden>Salir</button>
+  </div>
 </header>
 <div class="ribbon" aria-hidden="true"></div>
 <div class="temas" id="temas" role="group" aria-label="Fondo"></div>
@@ -107,6 +115,35 @@ const errTxt=e=>e?.message||"Algo ha fallado. Inténtalo de nuevo.";
 async function motivo(error){
   try{const j=await error.context.json();return j.error||errTxt(error)}catch{return errTxt(error)}
 }
+
+// ---------- Instalación como app ----------
+let promptInstalar=null;
+const yaInstalada=()=>matchMedia("(display-mode: standalone)").matches||navigator.standalone===true;
+const esIOS=()=>/iphone|ipad|ipod/i.test(navigator.userAgent);
+function pintaInstalar(){
+  const b=$("#btn-instalar");
+  if(b) b.hidden=yaInstalada()||!(promptInstalar||esIOS());
+}
+window.addEventListener("beforeinstallprompt",e=>{
+  e.preventDefault();
+  promptInstalar=e;
+  pintaInstalar();
+});
+window.addEventListener("appinstalled",()=>{
+  promptInstalar=null;
+  pintaInstalar();
+});
+function pulsarInstalar(){
+  if(promptInstalar){
+    promptInstalar.prompt();
+    promptInstalar=null;
+    pintaInstalar();
+    return;
+  }
+  // iPhone/iPad: Safari no permite instalar por código, así que se explica
+  alert("Para instalarla en el iPhone:\n1. Pulsa el botón Compartir de Safari.\n2. Elige \"Añadir a pantalla de inicio\".\n\nLa primera vez tendrás que volver a entrar con tu email y contraseña.");
+}
+if("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js");
 
 // ---------- Temas ----------
 function pintaFondo(tema){
@@ -221,13 +258,16 @@ async function vistaOrganizador(){
         <label>Contraseña temporal (mínimo 8)<input name="password" required minlength="8" autocomplete="off"></label>
         <button class="btn" type="submit">Crear cuenta</button>
       </form>
-      <p class="muted">La persona entra con ese email y esa contraseña, y puede cambiarla luego desde "Contraseña".</p>
+      <p class="muted">La persona entra con ese email y esa contraseña, y puede cambiarla luego desde "Mi perfil".</p>
     </section>`;
 }
 let confirmDelete=null;
 
 // Cierra la sesión y vuelve siempre a la pantalla de entrada (no depende del evento de Supabase)
+let confirmSalir=false;
 async function salir(){
+  if(!confirmSalir){confirmSalir=true;render();return}
+  confirmSalir=false;
   const {error}=await sb.auth.signOut();
   if(error) toast(errTxt(error));
   yo=null; esOrg=false; modo="login"; screen="sorteo";
@@ -240,6 +280,7 @@ async function render(){
   const app=$("#app");
   const logueado=!!yo;
   $("#btn-salir").hidden=!logueado;
+  pintaInstalar();
   if(modo==="nueva"){ $("#sub").textContent="Cambia tu contraseña"; app.innerHTML=vistaNuevaClave(); return; }
   if(!logueado){ $("#sub").textContent="Entrar"; app.innerHTML=vistaLogin(); return; }
   if(!yo.nombre){ app.innerHTML=vistaSinPerfil(); return; }
