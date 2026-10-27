@@ -407,7 +407,7 @@ async function vistaOrganizador(){
   let pares="";
   if(hecho){
     const {data}=await sb.rpc("ver_sorteo",{p_grupo:g.id,p_anio:anio});
-    pares=`<section class="card"><h2>Pares del ${anio}</h2><ul class="list">${(data||[]).map(r=>`<li><span>${esc(r.regala)}</span><span class="muted">→ ${esc(r.recibe)}</span></li>`).join("")}</ul></section>`;
+    pares=`<section class="card"><details><summary><h2 style="display:inline">Pares del ${anio}</h2></summary><ul class="list" style="margin-top:12px">${(data||[]).map(r=>`<li><span>${esc(r.regala)}</span><span class="muted">→ ${esc(r.recibe)}</span></li>`).join("")}</ul></details></section>`;
   }
   const botonSorteo=hecho
     ?`<button class="btn danger" data-action="reset">${confirmReset?"Pulsa otra vez para borrar el sorteo":"Borrar este sorteo y rehacerlo"}</button>`
@@ -465,7 +465,8 @@ async function render(){
   if(!g&&screen!=="grupos"&&screen!=="perfil") screen="grupos";
   if(screen==="organizador"&&!esOrganizador()) screen="sorteo";
   $("#btn-menu").innerHTML=avatar(yo,64)+'<span class="pastilla" aria-hidden="true">☰</span>';
-  $("#menu-cab").innerHTML=`${avatar(yo,56)}<div><strong>${esc(yo.nombre)}</strong></div>`;
+  // $("#menu-cab").innerHTML=`${avatar(yo,56)}<div><strong>${esc(yo.nombre)}</strong></div>`;
+  $("#menu-cab").innerHTML=`<label title="Cambiar foto" style="cursor:pointer;flex:none">${avatar(yo,56)}<input type="file" accept="image/jpeg,image/png,image/webp,image/gif" data-foto-propia hidden></label><div><strong>${esc(yo.nombre)}</strong></div>`;
   $("#menu-nav").innerHTML=menuNav();
   let cuerpo="";
   if(screen==="grupos") cuerpo=vistaGrupos();
