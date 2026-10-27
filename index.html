@@ -441,7 +441,7 @@ async function salir(){
 // Render
 async function render(){
   const app=$("#app");
-  const pinta=html=>{app.innerHTML=html;montarCaptcha()};
+  const pinta=html=>{app.innerHTML=html;intentosCaptcha=0;montarCaptcha()};
   const logueado=!!yo;
   const enApp=logueado&&modo!=="nueva";
   const bs=$("#btn-salir");
@@ -465,8 +465,7 @@ async function render(){
   if(!g&&screen!=="grupos"&&screen!=="perfil") screen="grupos";
   if(screen==="organizador"&&!esOrganizador()) screen="sorteo";
   $("#btn-menu").innerHTML=avatar(yo,64)+'<span class="pastilla" aria-hidden="true">☰</span>';
-  // $("#menu-cab").innerHTML=`${avatar(yo,56)}<div><strong>${esc(yo.nombre)}</strong></div>`;
-  $("#menu-cab").innerHTML=`<label title="Cambiar foto" style="cursor:pointer;flex:none">${avatar(yo,56)}<input type="file" accept="image/jpeg,image/png,image/webp,image/gif" data-foto-propia hidden></label><div><strong>${esc(yo.nombre)}</strong></div>`;
+  $("#menu-cab").innerHTML=`<button type="button" class="btn-av" id="btn-foto-menu" aria-label="Cambiar foto de perfil" title="Cambiar foto">${avatar(yo,56)}</button><input type="file" accept="image/jpeg,image/png,image/webp,image/gif" data-foto-propia hidden><div><strong>${esc(yo.nombre)}</strong></div>`;
   $("#menu-nav").innerHTML=menuNav();
   let cuerpo="";
   if(screen==="grupos") cuerpo=vistaGrupos();
@@ -492,6 +491,7 @@ async function cargarYo(){
 // Acciones
 document.addEventListener("click",async e=>{
   if(e.target.closest("#btn-menu")){abrirMenu(true);return}
+  if(e.target.closest("#btn-foto-menu")){document.querySelector("#menu-cab input[data-foto-propia]").click();return}
   if(e.target.closest("#btn-cerrar-menu")||e.target.id==="menu-fondo"){abrirMenu(false);return}
   if(e.target.closest("#aviso-ok")||e.target.id==="aviso"){cerrarAviso();return}
   if(e.target.closest("#ir-registro")){modo="registro";return render()}
@@ -587,7 +587,7 @@ document.addEventListener("submit",async e=>{
     }
     if(f.id==="f-recuperar"){
       const {error}=await sb.auth.resetPasswordForEmail(String(fd.get("email")).trim(),{
-        redirectTo:location.href.split("#")[0],
+        redirectTo:"https://rodrigobg1304.github.io/amigo-invisible/",
         captchaToken:token
       });
       reiniciarCaptcha(f);
