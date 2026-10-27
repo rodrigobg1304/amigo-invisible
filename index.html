@@ -463,7 +463,7 @@ document.addEventListener("change",async e=>{
     const file=e.target.files?.[0]; if(!file)return;
     const id=e.target.dataset.foto;
     const ruta=`${id}-${Date.now()}`;
-    const {error:errUp}=await sb.storage.from("fotos").upload(ruta,file,{upsert:true,contentType:file.type});
+    const {error:errUp}=await sb.storage.from("fotos").upload(ruta,file,{upsert:false,contentType:file.type});
     if(errUp){toast(errTxt(errUp));return}
     const url=sb.storage.from("fotos").getPublicUrl(ruta).data.publicUrl;
     const {error}=await sb.from("profiles").update({foto_url:url}).eq("id",id);
