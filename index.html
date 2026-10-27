@@ -288,6 +288,11 @@ function pintaFondo(tema){
   pintaFondo(t);
 })();
 
+document.addEventListener("click",e=>{
+  const b=e.target.closest("[data-tema-pick]");
+  if(b) pintaFondo(b.dataset.temaPick);
+});
+
 // Vistas de acceso
 function vistaLogin(){
   return `<section class="card"><h2>Entrar</h2>
