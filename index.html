@@ -599,7 +599,11 @@ document.addEventListener("submit",async e=>{
     const {data,error}=await sb.auth.signUp({
       email:String(fd.get("email")).trim(),
       password:String(fd.get("password")),
-      options:{data:{nombre:String(fd.get("nombre")).trim()},captchaToken:token}
+      options:{
+        data:{nombre:String(fd.get("nombre")).trim()},
+        captchaToken:token,
+        emailRedirectTo:"https://rodrigobg1304.github.io/amigo-invisible/"
+      }
     });
     reiniciarCaptcha(f);
     if(error){aviso("No se ha podido crear la cuenta",errTxt(error));return}
