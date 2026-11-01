@@ -161,7 +161,8 @@ const TEMAS={
 const COLORES=["#c8102e","#1f7a4d","#8a6310","#2d62a8","#8e3b8f"];
 
 let yo=null, grupos=[], grupoId=null, screen="sorteo", anio=new Date().getFullYear(), modo="login",
-    revelado=false, sacudiendo=false, confirmDraw=false, confirmReset=false, confirmDelete=null, confirmSalir=false;
+    revelado=false, sacudiendo=false, confirmDraw=false, confirmReset=false, confirmDelete=null, confirmSalir=false,
+    confirmReenviar=false, ocupado=false, correoFallidos=null;
 try{grupoId=localStorage.getItem("amigo-grupo")||null}catch{}
 
 const $=s=>document.querySelector(s);
@@ -222,6 +223,7 @@ function setGrupo(id){
   grupoId=id;
   try{id?localStorage.setItem("amigo-grupo",id):localStorage.removeItem("amigo-grupo")}catch{}
   revelado=false; confirmDraw=false; confirmReset=false; confirmDelete=null;
+  confirmReenviar=false; correoFallidos=null;
 }
 
 // Instalación como app
@@ -331,9 +333,6 @@ function vistaNuevaClave(){
     <button class="btn" type="submit">Guardar</button></form>
     <button class="link" id="btn-cancelar" type="button">Cancelar y volver a entrar</button></section>`;
 }
-function vistaSinPerfil(){
-  return `<section class="card"><h2>Tu cuenta no tiene perfil</h2><p class="muted">Cierra sesión y vuelve a entrar. Si sigue igual, escríbeme.</p></section>`;
-}
 
 // Vistas de la app
 function vistaGrupos(){
@@ -375,7 +374,8 @@ async function vistaParticipantes(){
   return `<section class="card"><h2>Participantes</h2><p class="muted">${(data||[]).length} personas en ${esc(grupoActual().nombre)}.</p>${items?`<div class="part-grid">${items}</div>`:'<p class="muted">Todavía no hay participantes.</p>'}</section>`;
 }
 function vistaPerfil(){
-  return `<section class="card"><h2>Mi foto</h2>
+  const falta=!yo.nombre?`<section class="card"><h2>Falta tu nombre</h2><p class="muted" style="margin:0">Escríbelo abajo y guarda para empezar a usar la app.</p></section>`:"";
+  return `${falta}<section class="card"><h2>Mi foto</h2>
     <div class="cab">${avatar(yo,72)}
       <div><p class="muted" style="margin:0 0 8px">La ven las personas de tus grupos.</p>
       <label class="btn ghost small" style="margin:0;cursor:pointer">Cambiar foto<input type="file" accept="image/jpeg,image/png,image/webp,image/gif" data-foto-propia hidden></label></div>
@@ -410,10 +410,18 @@ async function vistaOrganizador(){
     pares=`<section class="card"><details><summary><h2 style="display:inline">Pares del ${anio}</h2></summary><ul class="list" style="margin-top:12px">${(data||[]).map(r=>`<li><span>${esc(r.regala)}</span><span class="muted">→ ${esc(r.recibe)}</span></li>`).join("")}</ul></details></section>`;
   }
   const botonSorteo=hecho
-    ?`<button class="btn danger" data-action="reset">${confirmReset?"Pulsa otra vez para borrar el sorteo":"Borrar este sorteo y rehacerlo"}</button>`
-    :`<button class="btn" data-action="sortear">${confirmDraw?"Pulsa otra vez para confirmar":"Hacer el sorteo"}</button>`;
+    ?`<button class="btn danger" data-action="reset" ${ocupado?"disabled":""}>${confirmReset?"Pulsa otra vez para borrar el sorteo":"Borrar este sorteo y rehacerlo"}</button>`
+    :`<button class="btn" data-action="sortear" ${ocupado?"disabled":""}>${ocupado?"Enviando correos…":(confirmDraw?"Pulsa otra vez para confirmar y enviar":"Hacer el sorteo y enviar correos")}</button>`;
+  const reenvio=hecho
+    ?`<section class="card"><h2>Correos</h2>
+      <p class="muted">${correoFallidos?`${correoFallidos.length} correo(s) no se enviaron: ${esc(correoFallidos.map(f=>f.nombre).join(", "))}.`:"Cada persona recibió su correo con a quién le toca."}</p>
+      <button class="btn ghost" data-action="reenviar" ${ocupado?"disabled":""}>${ocupado?"Enviando…":confirmReenviar?"Pulsa otra vez para confirmar el reenvío":correoFallidos?"Reenviar solo a los que fallaron":"Reenviar correos a todos"}</button>
+      ${confirmReenviar&&!correoFallidos?'<p class="muted" style="margin:8px 0 0">Ojo: quien ya lo recibió volverá a recibir su correo.</p>':""}
+    </section>`
+    :"";
   return `${yearPicker()}
     <section class="card"><h2>${esc(g.nombre)} · ${anio}</h2><p class="muted">${(personas||[]).length} personas en el grupo. ${hecho?"Ya está hecho.":"Lánzalo cuando todos estén apuntados."}</p>${botonSorteo}</section>
+    ${reenvio}
     ${pares}
     <section class="card"><h2>Personas</h2><ul class="list">${lista}</ul></section>
     <section class="card"><h2>Añadir a alguien</h2>
@@ -427,6 +435,18 @@ async function vistaOrganizador(){
     </section>`;
 }
 
+// Resultado del envío de correos (sorteo o reenvío)
+function resultadoCorreos(data,titulo){
+  correoFallidos=data?.fallidos?.length?data.fallidos:null;
+  if(correoFallidos){
+    aviso(`${titulo}, pero ${correoFallidos.length} correo(s) no se han enviado`,
+      `No se han enviado a: ${correoFallidos.map(f=>f.nombre).join(", ")}. Puedes reenviarlos desde el apartado Correos del Organizador.`);
+  }else{
+    toast(`${titulo}. Correos enviados: ${data?.enviados??0}`);
+  }
+  return render();
+}
+
 // Salir (primer toque pide confirmación)
 async function salir(){
   if(!confirmSalir){confirmSalir=true;return render()}
@@ -435,6 +455,7 @@ async function salir(){
   if(error) toast(errTxt(error));
   yo=null; grupos=[]; modo="login"; screen="sorteo";
   revelado=false; confirmDraw=false; confirmReset=false; confirmDelete=null;
+  confirmReenviar=false; correoFallidos=null;
   return render();
 }
 
@@ -454,10 +475,14 @@ async function render(){
   if(!logueado&&modo==="registro"){$("#sub").textContent="Crear cuenta";pinta(vistaRegistro());return}
   if(!logueado&&modo==="recuperar"){$("#sub").textContent="Recuperar contraseña";pinta(vistaRecuperar());return}
   if(!logueado){$("#sub").textContent="Entrar";pinta(vistaLogin());return}
+  // Sin nombre: solo puede completar Mi perfil (y salir)
   if(!yo.nombre){
-    $("#btn-menu").innerHTML=avatar(yo,64)+'<span class="pastilla">☰</span>';
-    $("#menu-cab").innerHTML="";$("#menu-nav").innerHTML="";
-    pinta(vistaSinPerfil());return;
+    $("#btn-menu").innerHTML=avatar(yo,64)+'<span class="pastilla" aria-hidden="true">☰</span>';
+    $("#menu-cab").innerHTML='<div><strong>Completa tu perfil</strong></div>';
+    $("#menu-nav").innerHTML='<button data-screen="perfil" aria-current="true">Mi perfil</button>';
+    screen="perfil";
+    $("#sub").textContent="Completa tu perfil";
+    pinta(vistaPerfil());return;
   }
   const g=grupoActual();
   $("#sub").textContent=`Hola, ${yo.nombre}${g?` · ${g.nombre}`:""}`;
@@ -509,7 +534,7 @@ document.addEventListener("click",async e=>{
   const gr=e.target.closest("[data-grupo]");
   if(gr){setGrupo(gr.dataset.grupo);screen="sorteo";return render()}
   const sc=e.target.closest("[data-screen]"), act=e.target.closest("[data-action]");
-  if(sc){screen=sc.dataset.screen;confirmSalir=false;confirmDraw=false;confirmReset=false;revelado=false;abrirMenu(false);return render()}
+  if(sc){screen=sc.dataset.screen;confirmSalir=false;confirmDraw=false;confirmReset=false;confirmReenviar=false;revelado=false;abrirMenu(false);return render()}
   if(e.target.closest("#btn-salir")){return salir()}
   if(e.target.closest("#btn-cancelar")){confirmSalir=false;return salir()}
   if(!act)return;
@@ -517,16 +542,27 @@ document.addEventListener("click",async e=>{
   if(a==="abrir"&&!sacudiendo&&!revelado){sacudiendo=true;await render();setTimeout(async()=>{sacudiendo=false;revelado=true;await render()},520)}
   if(a==="sortear"){
     if(!confirmDraw){confirmDraw=true;return render()}
-    confirmDraw=false;
-    const {error}=await sb.rpc("sortear",{p_grupo:grupoId,p_anio:anio});
-    if(error){aviso("No se ha podido hacer el sorteo",errTxt(error));return render()}
-    toast("Sorteo hecho");return render();
+    confirmDraw=false; ocupado=true; render();
+    const {data,error}=await sb.functions.invoke("sortear-y-avisar",{body:{accion:"sortear",grupo_id:grupoId,anio}});
+    ocupado=false;
+    if(error){aviso("No se ha podido hacer el sorteo",await motivo(error));return render()}
+    return resultadoCorreos(data,"Sorteo hecho");
+  }
+  if(a==="reenviar"){
+    if(!confirmReenviar){confirmReenviar=true;return render()}
+    confirmReenviar=false; ocupado=true; render();
+    const ids=correoFallidos?correoFallidos.map(f=>f.id):undefined;
+    const {data,error}=await sb.functions.invoke("sortear-y-avisar",{body:{accion:"reenviar",grupo_id:grupoId,anio,ids}});
+    ocupado=false;
+    if(error){aviso("No se han podido reenviar los correos",await motivo(error));return render()}
+    return resultadoCorreos(data,"Reenvío hecho");
   }
   if(a==="reset"){
     if(!confirmReset){confirmReset=true;return render()}
     confirmReset=false;
     const {error}=await sb.rpc("borrar_sorteo",{p_grupo:grupoId,p_anio:anio});
     if(error){aviso("No se ha podido borrar el sorteo",errTxt(error));return render()}
+    correoFallidos=null;
     toast("Sorteo borrado. Ya puedes volver a hacerlo.");return render();
   }
   if(a==="quitar"){
@@ -548,7 +584,7 @@ document.addEventListener("keydown",e=>{
 
 document.addEventListener("change",async e=>{
   const t=e.target;
-  if(t.matches('[data-action="anyo"]')){anio=+t.value;confirmDraw=false;confirmReset=false;revelado=false;return render()}
+  if(t.matches('[data-action="anyo"]')){anio=+t.value;confirmDraw=false;confirmReset=false;confirmReenviar=false;correoFallidos=null;revelado=false;return render()}
   if(t.matches('[data-action="grupo"]')){setGrupo(t.value);screen="sorteo";abrirMenu(false);return render()}
   if(t.matches("[data-foto-propia]")){
     const file=t.files?.[0]; if(!file)return;
