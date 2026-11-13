@@ -589,7 +589,7 @@ document.addEventListener("change",async e=>{
   if(t.matches("[data-foto-propia]")){
     const file=t.files?.[0]; if(!file)return;
     if(!/^image\/(jpeg|png|webp|gif)$/.test(file.type)){aviso("Formato no válido","Elige una imagen JPG, PNG, WEBP o GIF.");t.value="";return}
-    if(file.size>2*1024*1024){aviso("La imagen es demasiado grande","El máximo es de 2 MB.");t.value="";return}
+    if(file.size>4*1024*1024){aviso("La imagen es demasiado grande","El máximo es de 4 MB.");t.value="";return}
     const ext=file.type.split("/")[1].replace("jpeg","jpg");
     const ruta=`${yo.id}/${Date.now()}.${ext}`;
     const {error:errUp}=await sb.storage.from("fotos").upload(ruta,file,{upsert:false,contentType:file.type});
