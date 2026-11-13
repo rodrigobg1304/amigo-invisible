@@ -403,7 +403,7 @@ async function vistaOrganizador(){
   const {data:personas,error}=await sb.rpc("listar_miembros",{p_grupo:g.id});
   if(error) return `<p class="empty">${esc(errTxt(error))}</p>`;
   const lista=(personas||[]).map(p=>`<li><span>${avatar(p,32)}<span>${esc(p.nombre)}</span></span>
-    <span class="row-end">${p.id===yo.id?'<span class="muted">tú</span>':`<button class="btn danger small" data-action="quitar" data-id="${esc(p.id)}">${confirmDelete===p.id?"Confirmar":"Quitar"}</button>`}</span></li>`).join("");
+    <span class="row-end">${p.id===yo.id?'<span class="muted">tú</span>':`<label class="btn ghost small" style="margin:0;cursor:pointer">Foto<input type="file" accept="image/jpeg,image/png,image/webp,image/gif" data-foto-miembro="${esc(p.id)}" hidden></label><button class="btn danger small" data-action="quitar" data-id="${esc(p.id)}">${confirmDelete===p.id?"Confirmar":"Quitar"}</button>`}</span></li>`).join("");
   let pares="";
   if(hecho){
     const {data}=await sb.rpc("ver_sorteo",{p_grupo:g.id,p_anio:anio});
@@ -434,7 +434,6 @@ async function vistaOrganizador(){
       <p class="muted">Si ya tiene cuenta, basta con su email. Si no, creamos su cuenta y puede cambiar la contraseña desde Mi perfil.</p>
     </section>`;
 }
-
 // Resultado del envío de correos (sorteo o reenvío)
 function resultadoCorreos(data,titulo){
   correoFallidos=data?.fallidos?.length?data.fallidos:null;
@@ -586,6 +585,21 @@ document.addEventListener("change",async e=>{
   const t=e.target;
   if(t.matches('[data-action="anyo"]')){anio=+t.value;confirmDraw=false;confirmReset=false;confirmReenviar=false;correoFallidos=null;revelado=false;return render()}
   if(t.matches('[data-action="grupo"]')){setGrupo(t.value);screen="sorteo";abrirMenu(false);return render()}
+  if(t.matches("[data-foto-miembro]")){
+    const file=t.files?.[0]; if(!file)return;
+    const id=t.dataset.fotoMiembro;
+    if(!/^image\/(jpeg|png|webp|gif)$/.test(file.type)){aviso("Formato no válido","Elige una imagen JPG, PNG, WEBP o GIF.");t.value="";return}
+    if(file.size>4*1024*1024){aviso("La imagen es demasiado grande","El máximo es de 4 MB.");t.value="";return}
+    const ext=file.type.split("/")[1].replace("jpeg","jpg");
+    const ruta=`${id}/${Date.now()}.${ext}`;
+    const {error:errUp}=await sb.storage.from("fotos").upload(ruta,file,{upsert:false,contentType:file.type});
+    if(errUp){aviso("No se puede subir la foto","Solo puedes cambiar la foto de personas de tus grupos que aún no han entrado en la app.");t.value="";return}
+    const url=sb.storage.from("fotos").getPublicUrl(ruta).data.publicUrl;
+    const {error}=await sb.rpc("organizador_poner_foto",{p_profile:id,p_url:url});
+    if(error){aviso("No se ha podido guardar la foto",errTxt(error));return}
+    toast("Foto actualizada");
+    return render();
+  }
   if(t.matches("[data-foto-propia]")){
     const file=t.files?.[0]; if(!file)return;
     if(!/^image\/(jpeg|png|webp|gif)$/.test(file.type)){aviso("Formato no válido","Elige una imagen JPG, PNG, WEBP o GIF.");t.value="";return}
