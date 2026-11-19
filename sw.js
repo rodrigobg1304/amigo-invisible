@@ -1,4 +1,4 @@
-const CACHE = 'amigo-invisible-v2';
+const CACHE = 'amigo-invisible-v3';
 const SHELL = ['./', './index.html', './manifest.json', './icon.svg'];
 
 self.addEventListener('install', (e) => {
